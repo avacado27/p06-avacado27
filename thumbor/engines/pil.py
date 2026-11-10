@@ -276,7 +276,26 @@ class Engine(BaseEngine):
                     if pillow_features.check("libimagequant")
                     else None
                 )
+                had_alpha = (
+                    "A" in self.image.mode
+                    or "transparency" in self.image.info
+                )
                 self.image = self.image.quantize(method=quantize_method)
+
+                # GIF has no palette alpha; mark the fully transparent
+                # palette entry as the transparent index.
+                target = requested_extension or self.extension
+                if (
+                    had_alpha
+                    and target == ".gif"
+                    and self.image.palette is not None
+                    and self.image.palette.mode == "RGBA"
+                ):
+                    palette = self.image.getpalette("RGBA")
+                    for index in range(len(palette) // 4):
+                        if palette[index * 4 + 3] == 0:
+                            self.image.info["transparency"] = index
+                            break
 
         ext = requested_extension or self.get_default_extension()
 
