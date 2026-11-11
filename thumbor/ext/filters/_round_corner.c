@@ -42,6 +42,20 @@ _round_corner_apply(PyObject *self, PyObject *args)
     int image_size = width * height * num_bytes;
     #endif
 
+    unsigned char *orig = NULL;
+    if (transparent == 1) {
+        Py_ssize_t buffer_size = PyBytes_Size(buffer);
+        if (buffer_size != (Py_ssize_t)width * height * num_bytes) {
+            PyErr_SetString(PyExc_ValueError, "round_corner: buffer size does not match width*height*bytes_per_pixel");
+            return NULL;
+        }
+        orig = malloc((size_t)buffer_size);
+        if (orig == NULL) {
+            return PyErr_NoMemory();
+        }
+        memcpy(orig, ptr, (size_t)buffer_size);
+    }
+
     for (y = 0; y <= b_rad; y += 1) {
         x = (float)(-(a_rad * sqrt((b_rad * b_rad) - (y * y))) / b_rad);
 
@@ -142,21 +156,25 @@ _round_corner_apply(PyObject *self, PyObject *args)
             float aa = 1.f - ((idx / (float)pixel_count_x) * aa_amount);
 
             if (transparent == 1) {
-                ptr[top_left + r_idx] = (color_top_left[r_idx] * (1.f - aa));
-                ptr[top_left + g_idx] = (color_top_left[g_idx] * (1.f - aa));
-                ptr[top_left + b_idx] = (color_top_left[b_idx] * (1.f - aa));
+                ptr[top_left + r_idx] = orig[top_left + r_idx];
+                ptr[top_left + g_idx] = orig[top_left + g_idx];
+                ptr[top_left + b_idx] = orig[top_left + b_idx];
+                ptr[top_left + a_idx] = (unsigned char) (orig[top_left + a_idx] * (1.f - aa));
 
-                ptr[bottom_left + r_idx] = (color_bottom_left[r_idx] * (1.f - aa));
-                ptr[bottom_left + g_idx] = (color_bottom_left[g_idx] * (1.f - aa));
-                ptr[bottom_left + b_idx] = (color_bottom_left[b_idx] * (1.f - aa));
+                ptr[bottom_left + r_idx] = orig[bottom_left + r_idx];
+                ptr[bottom_left + g_idx] = orig[bottom_left + g_idx];
+                ptr[bottom_left + b_idx] = orig[bottom_left + b_idx];
+                ptr[bottom_left + a_idx] = (unsigned char) (orig[bottom_left + a_idx] * (1.f - aa));
 
-                ptr[top_right + r_idx] = (color_top_right[r_idx] * (1.f - aa));
-                ptr[top_right + g_idx] = (color_top_right[g_idx] * (1.f - aa));
-                ptr[top_right + b_idx] = (color_top_right[b_idx] * (1.f - aa));
+                ptr[top_right + r_idx] = orig[top_right + r_idx];
+                ptr[top_right + g_idx] = orig[top_right + g_idx];
+                ptr[top_right + b_idx] = orig[top_right + b_idx];
+                ptr[top_right + a_idx] = (unsigned char) (orig[top_right + a_idx] * (1.f - aa));
 
-                ptr[bottom_right + r_idx] = (color_bottom_right[r_idx] * (1.f - aa));
-                ptr[bottom_right + g_idx] = (color_bottom_right[g_idx] * (1.f - aa));
-                ptr[bottom_right + b_idx] = (color_bottom_right[b_idx] * (1.f - aa));
+                ptr[bottom_right + r_idx] = orig[bottom_right + r_idx];
+                ptr[bottom_right + g_idx] = orig[bottom_right + g_idx];
+                ptr[bottom_right + b_idx] = orig[bottom_right + b_idx];
+                ptr[bottom_right + a_idx] = (unsigned char) (orig[bottom_right + a_idx] * (1.f - aa));
             } else {
                 ptr[top_left + r_idx] = (color_top_left[r_idx] * (1.f - aa)) + (r * (aa));
                 ptr[top_left + g_idx] = (color_top_left[g_idx] * (1.f - aa)) + (g * (aa));
@@ -227,21 +245,25 @@ _round_corner_apply(PyObject *self, PyObject *args)
             float aa = 1.f - ((idx / (float)pixel_count_y) * aa_amount);
 
             if (transparent == 1) {
-                ptr[top_left + r_idx] = (color_top_left[r_idx] * (1.f - aa));
-                ptr[top_left + g_idx] = (color_top_left[g_idx] * (1.f - aa));
-                ptr[top_left + b_idx] = (color_top_left[b_idx] * (1.f - aa));
+                ptr[top_left + r_idx] = orig[top_left + r_idx];
+                ptr[top_left + g_idx] = orig[top_left + g_idx];
+                ptr[top_left + b_idx] = orig[top_left + b_idx];
+                ptr[top_left + a_idx] = (unsigned char) (orig[top_left + a_idx] * (1.f - aa));
 
-                ptr[bottom_left + r_idx] = (color_bottom_left[r_idx] * (1.f - aa));
-                ptr[bottom_left + g_idx] = (color_bottom_left[g_idx] * (1.f - aa));
-                ptr[bottom_left + b_idx] = (color_bottom_left[b_idx] * (1.f - aa));
+                ptr[bottom_left + r_idx] = orig[bottom_left + r_idx];
+                ptr[bottom_left + g_idx] = orig[bottom_left + g_idx];
+                ptr[bottom_left + b_idx] = orig[bottom_left + b_idx];
+                ptr[bottom_left + a_idx] = (unsigned char) (orig[bottom_left + a_idx] * (1.f - aa));
 
-                ptr[top_right + r_idx] = (color_top_right[r_idx] * (1.f - aa));
-                ptr[top_right + g_idx] = (color_top_right[g_idx] * (1.f - aa));
-                ptr[top_right + b_idx] = (color_top_right[b_idx] * (1.f - aa));
+                ptr[top_right + r_idx] = orig[top_right + r_idx];
+                ptr[top_right + g_idx] = orig[top_right + g_idx];
+                ptr[top_right + b_idx] = orig[top_right + b_idx];
+                ptr[top_right + a_idx] = (unsigned char) (orig[top_right + a_idx] * (1.f - aa));
 
-                ptr[bottom_right + r_idx] = (color_bottom_right[r_idx] * (1.f - aa));
-                ptr[bottom_right + g_idx] = (color_bottom_right[g_idx] * (1.f - aa));
-                ptr[bottom_right + b_idx] = (color_bottom_right[b_idx] * (1.f - aa));
+                ptr[bottom_right + r_idx] = orig[bottom_right + r_idx];
+                ptr[bottom_right + g_idx] = orig[bottom_right + g_idx];
+                ptr[bottom_right + b_idx] = orig[bottom_right + b_idx];
+                ptr[bottom_right + a_idx] = (unsigned char) (orig[bottom_right + a_idx] * (1.f - aa));
             } else {
                 ptr[top_left + r_idx] = (color_top_left[r_idx] * (1.f - aa)) + (r * (aa));
                 ptr[top_left + g_idx] = (color_top_left[g_idx] * (1.f - aa)) + (g * (aa));
@@ -264,6 +286,7 @@ _round_corner_apply(PyObject *self, PyObject *args)
 
 END:
 
+    free(orig);
     Py_INCREF(buffer);
     return buffer;
 }
