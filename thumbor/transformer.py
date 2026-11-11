@@ -100,6 +100,13 @@ class Transformer:
                     self.context.request.width
                 )
 
+            # a proportional request that rounds to 0 would make the
+            # divisions in fit_in_resize() and auto_crop() fail
+            if self.target_width == 0:
+                self.target_width = 1.0
+            if self.target_height == 0:
+                self.target_height = 1.0
+
     def get_target_dimensions(self):
         """
         Returns the target dimensions and calculates them if necessary.
@@ -298,6 +305,10 @@ class Transformer:
             )
             crop_height = source_height
 
+        # never crop to zero size: a 0px crop makes a blank result
+        crop_width = max(crop_width, 1)
+        crop_height = max(crop_height, 1)
+
         crop_left = int(
             round(
                 min(
@@ -416,6 +427,10 @@ class Transformer:
         )
         self.context.request.width = int(max(requested_width, resize_width))
         self.context.request.height = int(max(requested_height, resize_height))
+
+        # never resize to zero size: Pillow rejects a 0px dimension
+        resize_width = max(resize_width, 1)
+        resize_height = max(resize_height, 1)
 
         self.engine.resize(resize_width, resize_height)
 
